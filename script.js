@@ -59,7 +59,7 @@ canvas.addEventListener("mouseup", (e) => {
     else if (tool === "rectangle") {
 
         applyBrushStyle();
-        
+
       let width = e.clientX - startX ;
       let height = e.clientY - startY ;
       ctx.strokeRect( startX,startY,width,height);
@@ -107,46 +107,6 @@ clearBtn.addEventListener("click", () => {
   localStorage.removeItem("drawing");
 });
 
-/*
-let images = []
-
-const imageBtn = document.getElementById("imageBtn");
-
-imageBtn.onclick = () => {
-  const img = new Image();
-  img.src = "https://picsum.photos/200";
-
-  img.onload = () => {
-    let x = Math.random() * (canvas.width - 200);
-    let y = Math.random() * (canvas.height - 200);
-
-    images.push({
-      img: img,
-      x: x,
-      y: y,
-      width: 200,
-      height: 200
-    });
-
-    drawImages();
-  };
-};
-
-function drawImages() {
-  for (let i = 0; i < images.length; i++) {
-    let image = images[i];
-
-    ctx.drawImage(
-      image.img,
-      image.x,
-      image.y,
-      image.width,
-      image.height
-    );
-  }
-}
-
-*/
 
 let brushType = "normal";
 
@@ -178,3 +138,4 @@ function applyBrushStyle() {
     ctx.setLineDash([10, 5]);
   }
 }
+
