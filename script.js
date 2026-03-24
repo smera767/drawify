@@ -67,10 +67,37 @@ const toggleButton = document.getElementById("themeToggle");
 toggleButton.onclick = () => {
   document.body.classList.toggle("dark");
 
-  // change drawing color based on theme
+ 
   if (document.body.classList.contains("dark")) {
     ctx.strokeStyle = "white";
   } else {
     ctx.strokeStyle = "black";
   }
 };
+
+const saveBtn = document.getElementById("saveBtn");
+
+saveBtn.addEventListener("click", () => {
+  const data = canvas.toDataURL();
+  localStorage.setItem("drawing", data);
+});
+
+window.addEventListener("load", () => {
+  const savedData = localStorage.getItem("drawing");
+
+  if (savedData) {
+    const img = new Image();
+    img.src = savedData;
+
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0);
+    };
+  }
+});
+
+const clearBtn = document.getElementById("clearBtn");
+
+clearBtn.addEventListener("click", () => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  localStorage.removeItem("drawing");
+});
