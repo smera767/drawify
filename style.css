@@ -51,6 +51,39 @@ h1 {
   cursor: pointer;
 }
 
+.toolbar button:hover {
+  background: #cfe8ff;
+}
+
+.tools {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.brushStyles {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  margin-top: 30px; 
+  padding-top: 15px;
+
+  border-top: 2px solid #bcdfff; 
+}
+
+.brushStyles button {
+  background: white; 
+  font-weight: bold;
+}
+
+.brushStyles button:hover {
+  background: #cfe8ff;
+}
+
+
+
+
 canvas {
   flex: 1;
   border: 3px solid #b6dcff;
