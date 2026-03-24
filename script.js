@@ -18,14 +18,37 @@ document.getElementById("rectangle").onclick = () => {
   tool = "rectangle";
 };
 
+document.getElementById("brush").onclick = () => {
+  tool = "brush";
+};
+
 let startX;
 let startY;
 let drawing = false;
 
 canvas.addEventListener("mousedown", (e) => {
-  startX = e.clientX;
+    startX = e.clientX;
   startY = e.clientY;
   drawing = true;
+
+  if (tool === "brush"){
+    ctx.beginPath();
+    ctx.moveTo(startX,startY);
+  }
+});
+
+
+canvas.addEventListener("mousemove", (e) => {
+  if (!drawing || tool !== "brush") return;
+
+
+  let x = e.clientX ;
+  let y = e.clientY;
+
+  applyBrushStyle();
+
+  ctx.lineTo(x, y);
+  ctx.stroke();
 });
 
 canvas.addEventListener("mouseup", (e) => {
@@ -59,12 +82,16 @@ canvas.addEventListener("mouseup", (e) => {
     else if (tool === "rectangle") {
 
         applyBrushStyle();
-
+        
       let width = e.clientX - startX ;
       let height = e.clientY - startY ;
       ctx.strokeRect( startX,startY,width,height);
     }
   drawing = false;
+
+  if (tool === "brush") {
+  ctx.beginPath(); 
+}
 });
 
 const toggleButton = document.getElementById("themeToggle");
@@ -108,6 +135,7 @@ clearBtn.addEventListener("click", () => {
 });
 
 
+
 let brushType = "normal";
 
 document.getElementById("normal").onclick = () => {
@@ -138,4 +166,3 @@ function applyBrushStyle() {
     ctx.setLineDash([10, 5]);
   }
 }
-
