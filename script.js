@@ -30,6 +30,7 @@ canvas.addEventListener("mousedown", (e) => {
 
 canvas.addEventListener("mouseup", (e) => {
   if (tool === "circle") {
+    applyBrushStyle();
 
     let xCentre = (e.clientX + startX) / 2;
     let yCentre = (e.clientY + startY) / 2;
@@ -45,6 +46,7 @@ canvas.addEventListener("mouseup", (e) => {
     ctx.stroke();
   }
     else if (tool === "triangle") {
+        applyBrushStyle();
       
       ctx.beginPath();
       ctx.moveTo(startX,startY);
@@ -55,6 +57,9 @@ canvas.addEventListener("mouseup", (e) => {
     }
 
     else if (tool === "rectangle") {
+
+        applyBrushStyle();
+        
       let width = e.clientX - startX ;
       let height = e.clientY - startY ;
       ctx.strokeRect( startX,startY,width,height);
@@ -101,3 +106,75 @@ clearBtn.addEventListener("click", () => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   localStorage.removeItem("drawing");
 });
+
+/*
+let images = []
+
+const imageBtn = document.getElementById("imageBtn");
+
+imageBtn.onclick = () => {
+  const img = new Image();
+  img.src = "https://picsum.photos/200";
+
+  img.onload = () => {
+    let x = Math.random() * (canvas.width - 200);
+    let y = Math.random() * (canvas.height - 200);
+
+    images.push({
+      img: img,
+      x: x,
+      y: y,
+      width: 200,
+      height: 200
+    });
+
+    drawImages();
+  };
+};
+
+function drawImages() {
+  for (let i = 0; i < images.length; i++) {
+    let image = images[i];
+
+    ctx.drawImage(
+      image.img,
+      image.x,
+      image.y,
+      image.width,
+      image.height
+    );
+  }
+}
+
+*/
+
+let brushType = "normal";
+
+document.getElementById("normal").onclick = () => {
+  brushType = "normal";
+};
+
+document.getElementById("thick").onclick = () => {
+  brushType = "thick";
+};
+
+document.getElementById("dashed").onclick = () => {
+  brushType = "dashed";
+};
+
+function applyBrushStyle() {
+  if (brushType === "normal") {
+    ctx.lineWidth = 2;
+    ctx.setLineDash([]);
+  }
+
+  else if (brushType === "thick") {
+    ctx.lineWidth = 8;
+    ctx.setLineDash([]);
+  }
+
+  else if (brushType === "dashed") {
+    ctx.lineWidth = 2;
+    ctx.setLineDash([10, 5]);
+  }
+}
