@@ -26,9 +26,18 @@ let startX;
 let startY;
 let drawing = false;
 
+function getMousePos(e) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: e.clientX - rect.left,
+    y: e.clientY - rect.top
+  };
+}
+
 canvas.addEventListener("mousedown", (e) => {
-    startX = e.clientX;
-  startY = e.clientY;
+    const pos = getMousePos(e);
+    startX = pos.x;
+    startY = pos.y;
   drawing = true;
 
   if (tool === "brush"){
@@ -42,8 +51,9 @@ canvas.addEventListener("mousemove", (e) => {
   if (!drawing || tool !== "brush") return;
 
 
-  let x = e.clientX ;
-  let y = e.clientY;
+  const pos = getMousePos(e);
+  let x = pos.x;
+  let y = pos.y;
 
   applyBrushStyle();
 
@@ -54,12 +64,16 @@ canvas.addEventListener("mousemove", (e) => {
 canvas.addEventListener("mouseup", (e) => {
   if (tool === "circle") {
     applyBrushStyle();
+    const pos = getMousePos(e);
+    let endX = pos.x;
+    let endY = pos.y;
 
-    let xCentre = (e.clientX + startX) / 2;
-    let yCentre = (e.clientY + startY) / 2;
 
-    let dx = e.clientX - startX;
-    let dy = e.clientY - startY;
+    let xCentre = (endX + startX) / 2;
+    let yCentre = (endY + startY) / 2;
+
+    let dx = endX - startX;
+    let dy = endY - startY;
 
     let diameter = Math.sqrt(dx * dx + dy * dy);
     let radius = diameter / 2;
@@ -70,11 +84,15 @@ canvas.addEventListener("mouseup", (e) => {
   }
     else if (tool === "triangle") {
         applyBrushStyle();
+
+       const pos = getMousePos(e);
+       let endX = pos.x;
+       let endY = pos.y; 
       
       ctx.beginPath();
       ctx.moveTo(startX,startY);
-      ctx.lineTo(e.clientX, e.clientY);
-      ctx.lineTo (startX-(e.clientX-startX) , e.clientY);
+      ctx.lineTo(endX, endY);
+ctx.lineTo(startX - (endX - startX), endY);
       ctx.lineTo(startX,startY);
       ctx.stroke();
     }
@@ -82,9 +100,13 @@ canvas.addEventListener("mouseup", (e) => {
     else if (tool === "rectangle") {
 
         applyBrushStyle();
+        const pos = getMousePos(e);
+        let endX = pos.x;
+        let endY = pos.y; 
+      
         
-      let width = e.clientX - startX ;
-      let height = e.clientY - startY ;
+      let width = endX - startX;
+      let height = endY - startY;
       ctx.strokeRect( startX,startY,width,height);
     }
   drawing = false;
@@ -99,7 +121,29 @@ const toggleButton = document.getElementById("themeToggle");
 toggleButton.onclick = () => {
   document.body.classList.toggle("dark");
 
- 
+  let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  let data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    let r = data[i];
+    let g = data[i + 1];
+    let b = data[i + 2];
+
+    if (r === 0 && g === 0 && b === 0) {
+      data[i] = 255;
+      data[i + 1] = 255;
+      data[i + 2] = 255;
+    }
+
+    else if (r === 255 && g === 255 && b === 255) {
+      data[i] = 0;
+      data[i + 1] = 0;
+      data[i + 2] = 0;
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+
   if (document.body.classList.contains("dark")) {
     ctx.strokeStyle = "white";
   } else {
