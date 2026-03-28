@@ -22,6 +22,10 @@ document.getElementById("brush").onclick = () => {
   tool = "brush";
 };
 
+document.getElementById("imageBtn").onclick = () => {
+  tool = "image";
+};
+
 let startX;
 let startY;
 let drawing = false;
@@ -49,7 +53,6 @@ canvas.addEventListener("mousedown", (e) => {
   }
 });
 
-
 canvas.addEventListener("mousemove", (e) => {
   if (!drawing) return;
 
@@ -57,25 +60,21 @@ canvas.addEventListener("mousemove", (e) => {
   let x = pos.x;
   let y = pos.y;
 
-  // restore canvas
   ctx.putImageData(snapshot, 0, 0);
 
   applyBrushStyle();
 
-  // BRUSH (free draw)
   if (tool === "brush") {
     ctx.lineTo(x, y);
     ctx.stroke();
   }
 
-  // RECTANGLE PREVIEW
   else if (tool === "rectangle") {
     let width = x - startX;
     let height = y - startY;
     ctx.strokeRect(startX, startY, width, height);
   }
 
-  // CIRCLE PREVIEW
   else if (tool === "circle") {
     let xCentre = (x + startX) / 2;
     let yCentre = (y + startY) / 2;
@@ -90,7 +89,6 @@ canvas.addEventListener("mousemove", (e) => {
     ctx.stroke();
   }
 
-  // TRIANGLE PREVIEW
   else if (tool === "triangle") {
     ctx.beginPath();
     ctx.moveTo(startX, startY);
@@ -99,6 +97,13 @@ canvas.addEventListener("mousemove", (e) => {
     ctx.closePath();
     ctx.stroke();
   }
+
+  else if (tool === "image") {
+  let width = x - startX;
+  let height = y - startY;
+
+  ctx.strokeRect(startX, startY, width, height);
+}
 });
 
 canvas.addEventListener("mouseup", (e) => {
@@ -149,10 +154,41 @@ ctx.lineTo(startX - (endX - startX), endY);
       let height = endY - startY;
       ctx.strokeRect( startX,startY,width,height);
     }
+
+    else if (tool === "image") {
+
+  applyBrushStyle();
+
+  const pos = getMousePos(e);
+  let endX = pos.x;
+  let endY = pos.y;
+
+  let width = endX - startX;
+  let height = endY - startY;
+
+  let w = Math.abs(width);
+  let h = Math.abs(height);
+
+  const img = new Image();
+
+  img.src = `https://picsum.photos/${Math.floor(w)}/${Math.floor(h)}?random=${Math.random()}`;
+
+  img.onload = () => {
+    ctx.drawImage(
+      img,
+      width < 0 ? endX : startX,
+      height < 0 ? endY : startY,
+      w,
+      h
+    );
+  };
+}
   drawing = false;
 
   if (tool === "brush") {
   ctx.beginPath(); 
+
+  
 }
 });
 
