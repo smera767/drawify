@@ -6,24 +6,37 @@ canvas.height = window.innerHeight -100;
 
 let tool = "brush";
 
+function setActiveButton(id) {
+  document.querySelectorAll(".toolbar button").forEach(btn => {
+    btn.classList.remove("active");
+  });
+
+  document.getElementById(id).classList.add("active");
+}
+
 document.getElementById("circle").onclick = () => {
   tool = "circle";
+  setActiveButton("circle");
 };
 
 document.getElementById("triangle").onclick = () => {
   tool = "triangle";
+  setActiveButton("triangle");
 };
 
 document.getElementById("rectangle").onclick = () => {
   tool = "rectangle";
+  setActiveButton("rectangle");
 };
 
 document.getElementById("brush").onclick = () => {
   tool = "brush";
+  setActiveButton("brush");
 };
 
 document.getElementById("imageBtn").onclick = () => {
   tool = "image";
+  setActiveButton("imageBtn");
 };
 
 let startX;
@@ -181,6 +194,7 @@ ctx.lineTo(startX - (endX - startX), endY);
       w,
       h
     );
+    snapshot = ctx.getImageData(0,0,canvas.width,canvas.height);
   };
 }
   drawing = false;

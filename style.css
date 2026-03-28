@@ -77,6 +77,9 @@ h1 {
   background: var(--light-blue);
 }
 
+.toolbar button.active {
+  background: var(--mid-blue);
+}
 
 .tools {
   display: flex;
@@ -150,4 +153,37 @@ canvas {
 .dark button {
   background: var(--dark-button);
   color: var(--white);
+}
+
+
+.toolbar button {
+  position: relative;
+}
+
+.toolbar button::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 110%;
+  top: 50%;
+  transform: translateY(-50%);
+
+  background: var(--mid-blue);
+  color: white;
+  padding: 0.3rem 0.5rem;
+  border-radius: 0.3rem;
+  font-size: 0.75rem;
+
+  white-space: nowrap;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.toolbar button:hover::after {
+  opacity: 1;
+}
+
+.dark .toolbar button::after {
+  background: #444;
 }
