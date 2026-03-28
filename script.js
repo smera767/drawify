@@ -4,6 +4,11 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth -100;
 canvas.height = window.innerHeight -100;
 
+// load saved theme
+if (localStorage.getItem("theme") === "dark") {
+  document.body.classList.add("dark");
+}
+
 let tool = "brush";
 
 function setActiveButton(id) {
@@ -206,11 +211,7 @@ ctx.lineTo(startX - (endX - startX), endY);
 }
 });
 
-const toggleButton = document.getElementById("themeToggle");
-
-toggleButton.onclick = () => {
-  document.body.classList.toggle("dark");
-
+function invertCanvasColors() {
   let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   let data = imageData.data;
 
@@ -219,12 +220,13 @@ toggleButton.onclick = () => {
     let g = data[i + 1];
     let b = data[i + 2];
 
+  
     if (r === 0 && g === 0 && b === 0) {
       data[i] = 255;
       data[i + 1] = 255;
       data[i + 2] = 255;
     }
-
+   
     else if (r === 255 && g === 255 && b === 255) {
       data[i] = 0;
       data[i + 1] = 0;
@@ -233,13 +235,30 @@ toggleButton.onclick = () => {
   }
 
   ctx.putImageData(imageData, 0, 0);
+}
+
+const toggleButton = document.getElementById("themeToggle");
+
+toggleButton.onclick = () => {
+  document.body.classList.toggle("dark");
+  invertCanvasColors();
 
   if (document.body.classList.contains("dark")) {
     ctx.strokeStyle = "white";
+    localStorage.setItem("theme", "dark");
   } else {
     ctx.strokeStyle = "black";
+    localStorage.setItem("theme", "light");
   }
 };
+
+window.onload = () => {
+  if (localStorage.getItem("theme") === "dark") {
+    invertCanvasColors();
+    ctx.strokeStyle = "white";
+  }
+};
+
 
 const saveBtn = document.getElementById("saveBtn");
 
