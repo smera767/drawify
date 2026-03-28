@@ -25,6 +25,7 @@ document.getElementById("brush").onclick = () => {
 let startX;
 let startY;
 let drawing = false;
+let snapshot;
 
 function getMousePos(e) {
   const rect = canvas.getBoundingClientRect();
@@ -39,6 +40,8 @@ canvas.addEventListener("mousedown", (e) => {
     startX = pos.x;
     startY = pos.y;
   drawing = true;
+   
+  snapshot = ctx.getImageData(0,0,canvas.width , canvas.height);
 
   if (tool === "brush"){
     ctx.beginPath();
@@ -48,17 +51,54 @@ canvas.addEventListener("mousedown", (e) => {
 
 
 canvas.addEventListener("mousemove", (e) => {
-  if (!drawing || tool !== "brush") return;
-
+  if (!drawing) return;
 
   const pos = getMousePos(e);
   let x = pos.x;
   let y = pos.y;
 
+  // restore canvas
+  ctx.putImageData(snapshot, 0, 0);
+
   applyBrushStyle();
 
-  ctx.lineTo(x, y);
-  ctx.stroke();
+  // BRUSH (free draw)
+  if (tool === "brush") {
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  }
+
+  // RECTANGLE PREVIEW
+  else if (tool === "rectangle") {
+    let width = x - startX;
+    let height = y - startY;
+    ctx.strokeRect(startX, startY, width, height);
+  }
+
+  // CIRCLE PREVIEW
+  else if (tool === "circle") {
+    let xCentre = (x + startX) / 2;
+    let yCentre = (y + startY) / 2;
+
+    let dx = x - startX;
+    let dy = y - startY;
+
+    let radius = Math.sqrt(dx * dx + dy * dy) / 2;
+
+    ctx.beginPath();
+    ctx.arc(xCentre, yCentre, radius, 0, 2 * Math.PI);
+    ctx.stroke();
+  }
+
+  // TRIANGLE PREVIEW
+  else if (tool === "triangle") {
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(x, y);
+    ctx.lineTo(startX - (x - startX), y);
+    ctx.closePath();
+    ctx.stroke();
+  }
 });
 
 canvas.addEventListener("mouseup", (e) => {
