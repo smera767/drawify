@@ -4,7 +4,6 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth -100;
 canvas.height = window.innerHeight -100;
 
-// load saved theme
 if (localStorage.getItem("theme") === "dark") {
   document.body.classList.add("dark");
 }
@@ -287,35 +286,53 @@ clearBtn.addEventListener("click", () => {
   localStorage.removeItem("drawing");
 });
 
-
-
-let brushType = "normal";
+let brushMode = "normal";
 
 document.getElementById("normal").onclick = () => {
-  brushType = "normal";
+  brushMode = "normal" ;
+  setActiveButton("normal");
 };
 
-document.getElementById("thick").onclick = () => {
-  brushType = "thick";
+document.getElementById("glow").onclick = () => {
+  brushMode = "glow" ;
+   setActiveButton("glow");
 };
-
 document.getElementById("dashed").onclick = () => {
-  brushType = "dashed";
+  brushMode = "dashed" ;
+   setActiveButton("dashed");
+};
+
+
+
+let brushSize = 1;
+
+const brushSlider = document.getElementById("brushSize");
+
+brushSlider.oninput = () => {
+  brushSize = brushSlider.value;
 };
 
 function applyBrushStyle() {
-  if (brushType === "normal") {
-    ctx.lineWidth = 2;
-    ctx.setLineDash([]);
+  ctx.lineWidth = brushSize;
+
+  ctx.setLineDash([]);
+  ctx.shadowBlur = 0
+
+  if (brushMode === "normal") {
   }
 
-  else if (brushType === "thick") {
-    ctx.lineWidth = 8;
-    ctx.setLineDash([]);
+  else if (brushMode === "glow") {
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = "blue" ;
   }
 
-  else if (brushType === "dashed") {
-    ctx.lineWidth = 2;
+  else if (brushMode === "dashed") {
     ctx.setLineDash([10, 5]);
+  }
+
+  if (document.body.classList.contains("dark")) {
+    ctx.strokeStyle = "white";
+  } else {
+    ctx.strokeStyle = "black";
   }
 }

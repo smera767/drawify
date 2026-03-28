@@ -24,9 +24,27 @@ body {
 
 .topbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   padding: 1rem 1.25rem;
+  position: relative;
+}
+
+.slidecontainer {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  
+   background: var(--light-blue);
+  padding: 0.4rem 0.8rem;
+  border-radius: 1rem;
+
+}
+
+.slider {
+  width: 8rem;
+  cursor: pointer;
+
 }
 
 h1 {
