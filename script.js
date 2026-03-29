@@ -97,7 +97,13 @@ canvas.addEventListener("mousemove", (e) => {
   else if (tool === "rectangle") {
     let width = x - startX;
     let height = y - startY;
-    ctx.strokeRect(startX, startY, width, height);
+    ctx.beginPath();
+ctx.moveTo(startX, startY);
+ctx.lineTo(startX + width, startY);
+ctx.lineTo(startX + width, startY + height);
+ctx.lineTo(startX, startY + height);
+ctx.closePath();
+ctx.stroke();
   }
 
   else if (tool === "circle") {
@@ -177,7 +183,13 @@ ctx.lineTo(startX - (endX - startX), endY);
         
       let width = endX - startX;
       let height = endY - startY;
-      ctx.strokeRect( startX,startY,width,height);
+      ctx.beginPath();
+ctx.moveTo(startX, startY);
+ctx.lineTo(startX + width, startY);
+ctx.lineTo(startX + width, startY + height);
+ctx.lineTo(startX, startY + height);
+ctx.closePath();
+ctx.stroke();
     }
 
     else if (tool === "image") {
@@ -333,7 +345,7 @@ function applyBrushStyle() {
   }
 
   else if (brushMode === "dashed") {
-    ctx.setLineDash([10, 5]);
+    ctx.setLineDash([brushSize*2 , brushSize]);
   }
 
   if (document.body.classList.contains("dark")) {
