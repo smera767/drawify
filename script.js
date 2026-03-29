@@ -1,30 +1,38 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-canvas.width = window.innerWidth -100;
-canvas.height = window.innerHeight -100;
-
-if (localStorage.getItem("theme") === "dark") {
-  document.body.classList.add("dark");
-}
+canvas.width = window.innerWidth - 100;
+canvas.height = window.innerHeight - 100;
 
 let tool = "brush";
+let drawing = false;
+let startX, startY;
+
+let elements = [];
+let currentPath = [];
+
+let brushMode = "normal";
+let brushSize = 2;
 
 function setActiveTool(id) {
-  document.querySelectorAll(".tool-button").forEach(btn => {
-    btn.classList.remove("active");
-  });
-
+  document.querySelectorAll(".tool-button").forEach(btn => btn.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 }
 
 function setActiveBrush(id) {
-  document.querySelectorAll(".brush-button").forEach(btn => {
-    btn.classList.remove("active");
-  });
-
+  document.querySelectorAll(".brush-button").forEach(btn => btn.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 }
+
+document.getElementById("brush").onclick = () => {
+  tool = "brush";
+  setActiveTool("brush");
+};
+
+document.getElementById("rectangle").onclick = () => {
+  tool = "rectangle";
+  setActiveTool("rectangle");
+};
 
 document.getElementById("circle").onclick = () => {
   tool = "circle";
@@ -36,25 +44,30 @@ document.getElementById("triangle").onclick = () => {
   setActiveTool("triangle");
 };
 
-document.getElementById("rectangle").onclick = () => {
-  tool = "rectangle";
-  setActiveTool("rectangle");
-};
-
-document.getElementById("brush").onclick = () => {
-  tool = "brush";
-  setActiveTool("brush");
-};
-
 document.getElementById("imageBtn").onclick = () => {
   tool = "image";
   setActiveTool("imageBtn");
 };
 
-let startX;
-let startY;
-let drawing = false;
-let snapshot;
+document.getElementById("normal").onclick = () => {
+  brushMode = "normal";
+  setActiveBrush("normal");
+};
+
+document.getElementById("glow").onclick = () => {
+  brushMode = "glow";
+  setActiveBrush("glow");
+};
+
+document.getElementById("dashed").onclick = () => {
+  brushMode = "dashed";
+  setActiveBrush("dashed");
+};
+
+const brushSlider = document.getElementById("brushSize");
+brushSlider.oninput = () => {
+  brushSize = brushSlider.value;
+};
 
 function getMousePos(e) {
   const rect = canvas.getBoundingClientRect();
@@ -64,17 +77,70 @@ function getMousePos(e) {
   };
 }
 
-canvas.addEventListener("mousedown", (e) => {
-    const pos = getMousePos(e);
-    startX = pos.x;
-    startY = pos.y;
-  drawing = true;
-   
-  snapshot = ctx.getImageData(0,0,canvas.width , canvas.height);
+function applyStyle(style) {
+  ctx.lineWidth = style.size;
+  ctx.setLineDash([]);
+  ctx.shadowBlur = 0;
 
-  if (tool === "brush"){
+  if (style.mode === "glow") {
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = "blue";
+  } else if (style.mode === "dashed") {
+    ctx.setLineDash([style.size * 2, style.size]);
+  }
+
+  ctx.strokeStyle = style.color;
+}
+
+function redraw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  elements.forEach(el => {
+    applyStyle(el.style || {
+      size: 2,
+      mode: "normal",
+      color: "black"
+    });
+
     ctx.beginPath();
-    ctx.moveTo(startX,startY);
+
+    if (el.type === "brush") {
+      ctx.moveTo(el.points[0].x, el.points[0].y);
+      el.points.forEach(p => ctx.lineTo(p.x, p.y));
+      ctx.stroke();
+    }
+
+    else if (el.type === "rectangle") {
+      ctx.strokeRect(el.x, el.y, el.w, el.h);
+    }
+
+    else if (el.type === "circle") {
+      ctx.arc(el.cx, el.cy, el.r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    else if (el.type === "triangle") {
+      ctx.moveTo(el.x1, el.y1);
+      ctx.lineTo(el.x2, el.y2);
+      ctx.lineTo(el.x3, el.y3);
+      ctx.closePath();
+      ctx.stroke();
+    }
+
+    else if (el.type === "image") {
+      ctx.drawImage(el.img, el.x, el.y, el.w, el.h);
+    }
+  });
+}
+
+canvas.addEventListener("mousedown", (e) => {
+  const pos = getMousePos(e);
+  startX = pos.x;
+  startY = pos.y;
+  drawing = true;
+
+  if (tool === "brush") {
+    currentPath = [{ x: startX, y: startY }];
   }
 });
 
@@ -82,41 +148,37 @@ canvas.addEventListener("mousemove", (e) => {
   if (!drawing) return;
 
   const pos = getMousePos(e);
-  let x = pos.x;
-  let y = pos.y;
+  const x = pos.x;
+  const y = pos.y;
 
-  ctx.putImageData(snapshot, 0, 0);
+  redraw();
 
-  applyBrushStyle();
+  applyStyle({
+    size: brushSize,
+    mode: brushMode,
+    color: document.body.classList.contains("dark") ? "white" : "black"
+  });
 
   if (tool === "brush") {
-    ctx.lineTo(x, y);
+    currentPath.push({ x, y });
+
+    ctx.beginPath();
+    ctx.moveTo(currentPath[0].x, currentPath[0].y);
+    currentPath.forEach(p => ctx.lineTo(p.x, p.y));
     ctx.stroke();
   }
 
   else if (tool === "rectangle") {
-    let width = x - startX;
-    let height = y - startY;
-    ctx.beginPath();
-ctx.moveTo(startX, startY);
-ctx.lineTo(startX + width, startY);
-ctx.lineTo(startX + width, startY + height);
-ctx.lineTo(startX, startY + height);
-ctx.closePath();
-ctx.stroke();
+    ctx.strokeRect(startX, startY, x - startX, y - startY);
   }
 
   else if (tool === "circle") {
-    let xCentre = (x + startX) / 2;
-    let yCentre = (y + startY) / 2;
-
-    let dx = x - startX;
-    let dy = y - startY;
-
-    let radius = Math.sqrt(dx * dx + dy * dy) / 2;
+    let r = Math.hypot(x - startX, y - startY) / 2;
+    let cx = (x + startX) / 2;
+    let cy = (y + startY) / 2;
 
     ctx.beginPath();
-    ctx.arc(xCentre, yCentre, radius, 0, 2 * Math.PI);
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
     ctx.stroke();
   }
 
@@ -130,227 +192,125 @@ ctx.stroke();
   }
 
   else if (tool === "image") {
-  let width = x - startX;
-  let height = y - startY;
-
-  ctx.strokeRect(startX, startY, width, height);
-}
+    ctx.strokeRect(startX, startY, x - startX, y - startY);
+  }
 });
 
 canvas.addEventListener("mouseup", (e) => {
-  if (tool === "circle") {
-    applyBrushStyle();
-    const pos = getMousePos(e);
-    let endX = pos.x;
-    let endY = pos.y;
-
-
-    let xCentre = (endX + startX) / 2;
-    let yCentre = (endY + startY) / 2;
-
-    let dx = endX - startX;
-    let dy = endY - startY;
-
-    let diameter = Math.sqrt(dx * dx + dy * dy);
-    let radius = diameter / 2;
-
-    ctx.beginPath();
-    ctx.arc(xCentre, yCentre, radius, 0, 2 * Math.PI);
-    ctx.stroke();
-  }
-    else if (tool === "triangle") {
-        applyBrushStyle();
-
-       const pos = getMousePos(e);
-       let endX = pos.x;
-       let endY = pos.y; 
-      
-      ctx.beginPath();
-      ctx.moveTo(startX,startY);
-      ctx.lineTo(endX, endY);
-ctx.lineTo(startX - (endX - startX), endY);
-      ctx.lineTo(startX,startY);
-      ctx.stroke();
-    }
-
-    else if (tool === "rectangle") {
-
-        applyBrushStyle();
-        const pos = getMousePos(e);
-        let endX = pos.x;
-        let endY = pos.y; 
-      
-        
-      let width = endX - startX;
-      let height = endY - startY;
-      ctx.beginPath();
-ctx.moveTo(startX, startY);
-ctx.lineTo(startX + width, startY);
-ctx.lineTo(startX + width, startY + height);
-ctx.lineTo(startX, startY + height);
-ctx.closePath();
-ctx.stroke();
-    }
-
-    else if (tool === "image") {
-
-  applyBrushStyle();
+  if (!drawing) return;
 
   const pos = getMousePos(e);
-  let endX = pos.x;
-  let endY = pos.y;
+  const endX = pos.x;
+  const endY = pos.y;
 
-  let width = endX - startX;
-  let height = endY - startY;
-
-  let w = Math.abs(width);
-  let h = Math.abs(height);
-
-  const img = new Image();
-
-  img.src = `https://picsum.photos/${Math.floor(w)}/${Math.floor(h)}?random=${Math.random()}`;
-
-  img.onload = () => {
-    ctx.drawImage(
-      img,
-      width < 0 ? endX : startX,
-      height < 0 ? endY : startY,
-      w,
-      h
-    );
-    snapshot = ctx.getImageData(0,0,canvas.width,canvas.height);
+  const style = {
+    size: brushSize,
+    mode: brushMode,
+    color: document.body.classList.contains("dark") ? "white" : "black"
   };
-}
-  drawing = false;
 
   if (tool === "brush") {
-  ctx.beginPath(); 
+    elements.push({ type: "brush", points: currentPath, style });
+  }
 
-  
-}
+  else if (tool === "rectangle") {
+    elements.push({ type: "rectangle", x: startX, y: startY, w: endX - startX, h: endY - startY, style });
+  }
+
+  else if (tool === "circle") {
+    elements.push({
+      type: "circle",
+      cx: (endX + startX) / 2,
+      cy: (endY + startY) / 2,
+      r: Math.hypot(endX - startX, endY - startY) / 2,
+      style
+    });
+  }
+
+  else if (tool === "triangle") {
+    elements.push({
+      type: "triangle",
+      x1: startX,
+      y1: startY,
+      x2: endX,
+      y2: endY,
+      x3: startX - (endX - startX),
+      y3: endY,
+      style
+    });
+  }
+
+  else if (tool === "image") {
+    let w = Math.abs(endX - startX);
+    let h = Math.abs(endY - startY);
+
+    const img = new Image();
+    img.src = `https://picsum.photos/${Math.floor(w)}/${Math.floor(h)}?random=${Math.random()}`;
+
+    img.onload = () => {
+      elements.push({
+        type: "image",
+        img,
+        x: Math.min(startX, endX),
+        y: Math.min(startY, endY),
+        w,
+        h
+      });
+
+      redraw();
+    };
+
+    drawing = false;
+    return;
+  }
+
+  drawing = false;
+  redraw();
 });
+
+document.getElementById("saveBtn").onclick = () => {
+  localStorage.setItem("drawing", canvas.toDataURL());
+};
+
+window.onload = () => {
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+  }
+
+  const data = localStorage.getItem("drawing");
+  if (data) {
+    const img = new Image();
+    img.src = data;
+    img.onload = () => ctx.drawImage(img, 0, 0);
+  }
+};
+
+document.getElementById("clearBtn").onclick = () => {
+  elements = [];
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  localStorage.removeItem("drawing");
+};
 
 function invertCanvasColors() {
   let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   let data = imageData.data;
 
   for (let i = 0; i < data.length; i += 4) {
-    let r = data[i];
-    let g = data[i + 1];
-    let b = data[i + 2];
-
-  
-    if (r === 0 && g === 0 && b === 0) {
-      data[i] = 255;
-      data[i + 1] = 255;
-      data[i + 2] = 255;
-    }
-   
-    else if (r === 255 && g === 255 && b === 255) {
-      data[i] = 0;
-      data[i + 1] = 0;
-      data[i + 2] = 0;
-    }
+    data[i] = 255 - data[i];
+    data[i + 1] = 255 - data[i + 1];
+    data[i + 2] = 255 - data[i + 2];
   }
 
   ctx.putImageData(imageData, 0, 0);
 }
 
-const toggleButton = document.getElementById("themeToggle");
-
-toggleButton.onclick = () => {
+document.getElementById("themeToggle").onclick = () => {
   document.body.classList.toggle("dark");
   invertCanvasColors();
 
   if (document.body.classList.contains("dark")) {
-    ctx.strokeStyle = "white";
     localStorage.setItem("theme", "dark");
   } else {
-    ctx.strokeStyle = "black";
     localStorage.setItem("theme", "light");
   }
 };
-
-window.onload = () => {
-  if (localStorage.getItem("theme") === "dark") {
-    invertCanvasColors();
-    ctx.strokeStyle = "white";
-  }
-};
-
-
-const saveBtn = document.getElementById("saveBtn");
-
-saveBtn.addEventListener("click", () => {
-  const data = canvas.toDataURL();
-  localStorage.setItem("drawing", data);
-});
-
-window.addEventListener("load", () => {
-  const savedData = localStorage.getItem("drawing");
-
-  if (savedData) {
-    const img = new Image();
-    img.src = savedData;
-
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0);
-    };
-  }
-});
-
-const clearBtn = document.getElementById("clearBtn");
-
-clearBtn.addEventListener("click", () => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  localStorage.removeItem("drawing");
-});
-
-let brushMode = "normal";
-
-document.getElementById("normal").onclick = () => {
-  brushMode = "normal" ;
-  setActiveBrush("normal");
-};
-
-document.getElementById("glow").onclick = () => {
-  brushMode = "glow" ;
-   setActiveBrush("glow");
-};
-document.getElementById("dashed").onclick = () => {
-  brushMode = "dashed" ;
-   setActiveBrush("dashed");
-};
-
-let brushSize = 1;
-
-const brushSlider = document.getElementById("brushSize");
-
-brushSlider.oninput = () => {
-  brushSize = brushSlider.value;
-};
-
-function applyBrushStyle() {
-  ctx.lineWidth = brushSize;
-
-  ctx.setLineDash([]);
-  ctx.shadowBlur = 0
-
-  if (brushMode === "normal") {
-  }
-
-  else if (brushMode === "glow") {
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = "blue" ;
-  }
-
-  else if (brushMode === "dashed") {
-    ctx.setLineDash([brushSize*2 , brushSize]);
-  }
-
-  if (document.body.classList.contains("dark")) {
-    ctx.strokeStyle = "white";
-  } else {
-    ctx.strokeStyle = "black";
-  }
-}
