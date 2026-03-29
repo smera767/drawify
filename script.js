@@ -10,8 +10,16 @@ if (localStorage.getItem("theme") === "dark") {
 
 let tool = "brush";
 
-function setActiveButton(id) {
-  document.querySelectorAll(".toolbar button").forEach(btn => {
+function setActiveTool(id) {
+  document.querySelectorAll(".tool-button").forEach(btn => {
+    btn.classList.remove("active");
+  });
+
+  document.getElementById(id).classList.add("active");
+}
+
+function setActiveBrush(id) {
+  document.querySelectorAll(".brush-button").forEach(btn => {
     btn.classList.remove("active");
   });
 
@@ -20,27 +28,27 @@ function setActiveButton(id) {
 
 document.getElementById("circle").onclick = () => {
   tool = "circle";
-  setActiveButton("circle");
+  setActiveTool("circle");
 };
 
 document.getElementById("triangle").onclick = () => {
   tool = "triangle";
-  setActiveButton("triangle");
+  setActiveTool("triangle");
 };
 
 document.getElementById("rectangle").onclick = () => {
   tool = "rectangle";
-  setActiveButton("rectangle");
+  setActiveTool("rectangle");
 };
 
 document.getElementById("brush").onclick = () => {
   tool = "brush";
-  setActiveButton("brush");
+  setActiveTool("brush");
 };
 
 document.getElementById("imageBtn").onclick = () => {
   tool = "image";
-  setActiveButton("imageBtn");
+  setActiveTool("imageBtn");
 };
 
 let startX;
@@ -290,19 +298,17 @@ let brushMode = "normal";
 
 document.getElementById("normal").onclick = () => {
   brushMode = "normal" ;
-  setActiveButton("normal");
+  setActiveBrush("normal");
 };
 
 document.getElementById("glow").onclick = () => {
   brushMode = "glow" ;
-   setActiveButton("glow");
+   setActiveBrush("glow");
 };
 document.getElementById("dashed").onclick = () => {
   brushMode = "dashed" ;
-   setActiveButton("dashed");
+   setActiveBrush("dashed");
 };
-
-
 
 let brushSize = 1;
 
