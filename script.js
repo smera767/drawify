@@ -302,8 +302,6 @@ document.getElementById("dashed").onclick = () => {
    setActiveButton("dashed");
 };
 
-
-
 let brushSize = 1;
 
 const brushSlider = document.getElementById("brushSize");
